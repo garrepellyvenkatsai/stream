@@ -30,6 +30,18 @@ custom_css = """
     position: relative;
 }
 
+/* Overlay for loading state */
+.chat-container.loading::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 1;
+}
+
 /* User message */
 .user-message {
     text-align: right;
@@ -104,22 +116,12 @@ custom_css = """
 
 /* Loader */
 .loader {
-    border: 16px solid #f3f3f3; /* Light grey */
-    border-top: 16px solid #3498db; /* Blue */
-    border-radius: 50%;
-    width: 120px;
-    height: 120px;
-    animation: spin 2s linear infinite;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    opacity: 0.5; /* Adjust the transparency */
-}
-
-@keyframes spin {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
+    opacity: 0.8; /* Adjust the transparency */
+    z-index: 2;
 }
 </style>
 """
@@ -127,7 +129,7 @@ st.markdown(custom_css, unsafe_allow_html=True)
 
 # Function to display messages
 def display_messages(messages, show_loader=False):
-    chat_html = '<div class="chat-container">'
+    chat_html = '<div class="chat-container{}">'.format(" loading" if show_loader else "")
     for message in messages:
         timestamp = f'<div class="timestamp">{message["timestamp"].strftime("%Y-%m-%d %H:%M:%S")}</div>'
         if message["role"] == "user":
@@ -135,7 +137,7 @@ def display_messages(messages, show_loader=False):
         else:
             chat_html += f'<div class="bot-message"><div class="msg">{message["content"]}</div>{timestamp}</div>'
     if show_loader:
-        chat_html += '<div class="loader"></div>'
+        chat_html += '<div class="loader"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>'
     chat_html += '</div>'
     return chat_html
 
