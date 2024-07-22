@@ -262,3 +262,78 @@ autoscroll_script = """
 """
 
 st.markdown(autoscroll_script, unsafe_allow_html=True)
+
+
+import streamlit as st
+
+# Function to add new chat messages to the chat history
+def add_message(history, user_message, assistant_message):
+    history["past2"].append(user_message)
+    history["generated2"].append(assistant_message)
+    return history
+
+# Function to display the conversation
+def display_conversation(history):
+    container = '<div id="your_div" class="chat-container" style="height: 400px; overflow-y: auto;">'
+    
+    # Add chat messages to the container
+    for i in range(len(history["generated2"])):
+        container += f'<div class="message user-message">{history["past2"][i]}</div>'
+        container += f'<div class="message assistant-message">{history["generated2"][i]}</div>'
+    
+    # Close the chat container div
+    container += '</div>'
+    
+    # Display the entire container with the messages
+    st.markdown(container, unsafe_allow_html=True)
+
+# Initialize chat history
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = {"past2": [], "generated2": []}
+
+# Input field for new messages
+user_message = st.text_input("Enter your message")
+
+# Button to add the new message
+if st.button("Send"):
+    # Simulate assistant response
+    assistant_message = "This is a response from the assistant."
+    st.session_state.chat_history = add_message(st.session_state.chat_history, user_message, assistant_message)
+
+# Display the chat history
+display_conversation(st.session_state.chat_history)
+
+# JavaScript and jQuery to handle autoscrolling
+autoscroll_script = """
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        var $yourDiv = $('#your_div');
+        
+        // Scroll to the bottom smoothly
+        function scrollToBottom() {
+            $yourDiv.stop().animate({
+                scrollTop: $yourDiv[0].scrollHeight
+            }, 15000);
+        }
+        
+        // Initial scroll to bottom
+        scrollToBottom();
+
+        // Stop scrolling animation if user interacts with the container
+        $yourDiv.bind("scroll mousedown DOMMouseScroll mousewheel keyup", function(e) {
+            if (e.which > 0 || e.type === "mousedown" || e.type === "mousewheel") {
+                $yourDiv.stop().unbind('scroll mousedown DOMMouseScroll mousewheel keyup');
+            }
+        });
+        
+        // Poll for new messages every 100ms
+        setInterval(function() {
+            scrollToBottom();
+        }, 100);
+    });
+</script>
+"""
+
+st.markdown(autoscroll_script, unsafe_allow_html=True)
+
