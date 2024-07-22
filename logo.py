@@ -114,3 +114,67 @@ autoscroll_script = """
         </script>
         """
 st.markdown(autoscroll_script, unsafe_allow_html=True)
+
+
+
+import streamlit as st
+
+# Function to add new chat messages to the chat history
+def add_message(history, user_message, assistant_message):
+    history["past2"].append(user_message)
+    history["generated2"].append(assistant_message)
+    return history
+
+# Function to display the conversation
+def display_conversation(history):
+    container = '<div id="chat-container" class="chat-container" style="height: 400px; overflow-y: auto;">'
+    
+    # Add chat messages to the container
+    for i in range(len(history["generated2"])):
+        container += f'<div class="chat-message user-message">{history["past2"][i]}</div>'
+        container += f'<div class="chat-message assistant-message">{history["generated2"][i]}</div>'
+    
+    # Close the chat container div
+    container += '</div>'
+    
+    # Display the entire container with the messages
+    st.markdown(container, unsafe_allow_html=True)
+
+# Initialize chat history
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = {"past2": [], "generated2": []}
+
+# Input field for new messages
+user_message = st.text_input("Enter your message")
+
+# Button to add the new message
+if st.button("Send"):
+    # Simulate assistant response
+    assistant_message = "This is a response from the assistant."
+    st.session_state.chat_history = add_message(st.session_state.chat_history, user_message, assistant_message)
+
+# Display the chat history
+display_conversation(st.session_state.chat_history)
+
+# JavaScript to handle autoscrolling
+autoscroll_script = """
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var chatContainer = document.getElementById('chat-container');
+        if (chatContainer) {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    });
+    var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            var chatContainer = document.getElementById('chat-container');
+            if (chatContainer) {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        });
+    });
+    observer.observe(document.getElementById('chat-container'), { childList: true });
+</script>
+"""
+st.markdown(autoscroll_script, unsafe_allow_html=True)
+
