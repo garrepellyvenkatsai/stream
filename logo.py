@@ -74,3 +74,16 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+autoscroll_script = """
+        <script>
+            var chatContainer = window.parent.document.getElementById('chat-container');
+            if (chatContainer) {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        </script>
+        """
+        st.markdown(autoscroll_script, unsafe_allow_html=True)
