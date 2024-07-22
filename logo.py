@@ -87,3 +87,30 @@ autoscroll_script = """
         </script>
         """
         st.markdown(autoscroll_script, unsafe_allow_html=True)
+
+
+def display_conversation(history):
+    container = '<div class="chat-container">'
+    
+    
+    # Add chat messages to the container
+    for i in range(len(history["generated2"])):
+        
+        container += f'<div class="chat-message user-message">{history["past2"][i]}</div>'
+        container += f'<div class="chat-message assistant-message">{history["generated2"][i]}</div>'
+    
+    # Close the chat container div
+    container += '</div>'
+    
+    # Display the entire container with the messages
+    st.markdown(container, unsafe_allow_html=True)
+
+autoscroll_script = """
+        <script>
+            var chatContainer = window.parent.document.getElementById('chat-container');
+            if (chatContainer) {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        </script>
+        """
+st.markdown(autoscroll_script, unsafe_allow_html=True)
