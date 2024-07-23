@@ -537,3 +537,113 @@ def chatInterface(qa):
     # Display conversation history using Streamlit messages
     if st.session_state["generated2"]:
         display_conversation(st.session_state)
+
+import streamlit as st
+from streamlit.components.v1 import html
+
+def display_conversation(history):
+    container = '''
+    <style>
+    /* Chat container */
+    .chat-container {
+        width: 100%;
+        max-width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        background-color: #f9f9f9;
+        height: 500px;
+        overflow-y: scroll; /* Ensure scrollbar always appears */
+        position: relative;
+        box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    }
+
+    /* Custom scrollbar */
+    .chat-container::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .chat-container::-webkit-scrollbar-thumb {
+        background-color: #007bff;
+        border-radius: 10px;
+    }
+
+    .chat-container::-webkit-scrollbar-track {
+        background-color: #f1f1f1;
+    }
+
+    /* Chat message styles */
+    .chat-message {
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 10px;
+        max-width: 60%;
+    }
+
+    .user-message {
+        background-color: #007bff;
+        color: white;
+        text-align: right;
+    }
+
+    .assistant-message {
+        background-color: #e9ecef;
+        color: black;
+        text-align: left;
+    }
+    </style>
+
+    <div id="messages" class="chat-container">
+    '''
+
+    # Add chat messages to the container
+    for i in range(len(history["generated2"])):
+        container += f'<div class="chat-message user-message">{history["past2"][i]}</div>'
+        container += f'<div class="chat-message assistant-message">{history["generated2"][i]}</div>'
+
+    # Close the chat container div
+    container += '</div>'
+    
+    # Add JavaScript to auto-scroll to the bottom
+    container += '''
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatContainer = document.getElementById('messages');
+        chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to bottom on load
+    });
+    </script>
+    '''
+
+    # Display the entire container with the messages
+    html(container, height=600)
+
+def chatInterface(qa):
+    input_container = st.container()
+    with input_container:
+        user_input = st.chat_input(placeholder="Enter your prompt here")
+
+    # Initialize session state for chat history
+    chat_history = []
+
+    # Initialize session state for generated2 responses and past2 messages
+    if "past2" not in st.session_state:
+        st.session_state["past2"] = ["Hey there!"]
+        
+    if "generated2" not in st.session_state:
+        st.session_state["generated2"] = ["Ask away any questions you have about the Document. "] # Below is a summary of your file to get you started.
+        summary = qa({"query": "Say 'Here is a summary of your document' and then summarise in a short paragraph and give 3-5 salient points", "chat_history": chat_history})
+        summary_response = str(summary["result"])
+        st.session_state.past2.append("Let's start with the summary")
+        st.session_state.generated2.append(summary_response)
+    
+    # Search the database for a response based on user input and update session state
+    if user_input:
+        output = qa({"query": user_input, "chat_history": chat_history})
+        chat_history.append((user_input, output['result']))        
+        st.session_state.past2.append(user_input)
+        response = str(output["result"])
+        st.session_state.generated2.append(response)
+    
+    # Display conversation history using Streamlit messages
+    if st.session_state["generated2"]:
+        display_conversation(st.session_state)
