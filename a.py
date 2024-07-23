@@ -591,6 +591,26 @@ def display_conversation(history):
         color: black;
         text-align: left;
     }
+
+    /* Scroll to bottom button */
+    .scroll-to-bottom {
+        position: fixed; /* Fixed position */
+        bottom: 10px; /* Distance from the bottom */
+        right: 10px; /* Distance from the right */
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 10px;
+        cursor: pointer;
+        font-size: 16px;
+        z-index: 1000;
+        display: none;
+    }
+
+    .scroll-to-bottom.show {
+        display: block;
+    }
     </style>
 
     <div id="messages" class="chat-container">
@@ -604,12 +624,31 @@ def display_conversation(history):
     # Close the chat container div
     container += '</div>'
     
-    # Add JavaScript to auto-scroll to the bottom
+    # Add JavaScript to auto-scroll and scroll-to-bottom functionality
     container += '''
+    <button id="scroll-to-bottom" class="scroll-to-bottom">↓</button>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const chatContainer = document.getElementById('messages');
-        chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to bottom on load
+        const scrollToBottomBtn = document.getElementById('scroll-to-bottom');
+
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            scrollToBottomBtn.classList.remove('show');
+        }
+
+        function checkScroll() {
+            if (chatContainer.scrollTop + chatContainer.clientHeight < chatContainer.scrollHeight - 20) {
+                scrollToBottomBtn.classList.add('show');
+            } else {
+                scrollToBottomBtn.classList.remove('show');
+            }
+        }
+
+        // Initial scroll to bottom
+        scrollToBottom();
+        chatContainer.addEventListener('scroll', checkScroll);
+        scrollToBottomBtn.addEventListener('click', scrollToBottom);
     });
     </script>
     '''
