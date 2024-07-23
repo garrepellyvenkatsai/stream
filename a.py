@@ -338,3 +338,202 @@ with st.container():
         
         # Rerun the script to update the chat
         st.rerun()
+
+
+
+
+def display_conversation(history):
+    container = '<div id="messages" class="chat-container" >'
+    
+    
+    # Add chat messages to the container
+    for i in range(len(history["generated2"])):
+        
+        container += f'<div class="chat-message user-message">{history["past2"][i]}</div>'
+        container += f'<div class="chat-message assistant-message">{history["generated2"][i]}</div>'
+    
+    # Close the chat container div
+    container += '</div>'
+    
+    # Display the entire container with the messages
+    st.markdown(container, unsafe_allow_html=True)
+    autoscroll_script = """
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatContainer = document.querySelector('.chat-container');
+    const scrollToBottomBtn = document.querySelector('.scroll-to-bottom');
+
+    function scrollToBottom() {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function checkScroll() {
+        if (chatContainer.scrollTop + chatContainer.clientHeight < chatContainer.scrollHeight - 20) {
+            scrollToBottomBtn.classList.add('show');
+        } else {
+            scrollToBottomBtn.classList.remove('show');
+        }
+    }
+
+    scrollToBottom();  // Scroll to bottom on load
+    chatContainer.addEventListener('scroll', checkScroll);
+    scrollToBottomBtn.addEventListener('click', scrollToBottom);
+});
+</script>
+"""
+
+    st.markdown(autoscroll_script, unsafe_allow_html=True)
+    
+
+
+st.markdown(
+    """
+    
+    <style>
+    /* CSS for chat_input container inbuilt streamlit widget classes*/
+    .st-emotion-cache-1ch8vux:hover {
+    background-color:#99c9ff;
+    border: 1px solid black;
+    color: rgb(255, 255, 255);
+    
+    }
+    
+    .st-emotion-cache-klqnuk { /* RUNNING TEXT*/
+        font-size: 14px;
+        color: rgb(163, 168, 184);
+        text-transform: uppercase;
+        margin-top: 1000px; 
+        margin-right: 550px;
+        white-space: nowrap;
+        max-width: 20rem;
+        transition: opacity 200ms ease-out 0s, clip 200ms ease-out 0s, min-width 200ms ease-out 0s, max-width 200ms ease-out 0s, padding 200ms ease-out 0s;
+    }
+    .st-emotion-cache-1j15ncu { /* RUNNING ICON*/
+        opacity: 0.4;
+        width: 1.6rem;
+        height: 1.6rem;
+        margin-right: -0.5rem;
+        margin-top: 1000px; 
+        #margin-right: 102px;
+    }
+   
+    .st-cy {
+        border-left-color: black;
+    }
+    .st-cz {
+        border-right-color: black;
+    }
+    .st-d0 {
+        border-top-color: black;
+    }
+    .st-d1 {
+        border-bottom-color: black;
+    }
+    .st-bn {
+        background-color: #F9F9F9;
+    }
+    .st-emotion-cache-1ch8vux {
+    border: none;
+    background-color: black;
+    border-top-right-radius: 0.5rem;
+    border-top-left-radius: 0px;
+    border-bottom-right-radius: 0.5rem;
+    display: inline-flex;
+    -webkit-box-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    justify-content: center;
+    line-height: 1;
+    margin: 0px;
+    padding: 0.5rem;
+    color: #e6feff;
+    pointer-events: auto;
+
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+def save_uploadedfile(uploadedfile):
+    with open(os.path.join(r"X:\Technology\CoPilot\chatWithDocUserFiles",uploadedfile.name),"wb") as f:
+        f.write(uploadedfile.getbuffer())
+   
+    success_message = st.success("Saved file!")
+    time.sleep(2)  
+    success_message.empty()
+    
+
+@st.cache_resource
+def declare():
+    if "globalFiles" not in st.session_state:
+        st.session_state.globalFiles= {}
+    return st.session_state.globalFiles
+
+# this is for sessioned(private files)
+if "files_dic" not in st.session_state:
+    st.session_state.files_dic= {}
+
+# this is for docVisiblity
+# values: local, global
+if "docVisibility" not in st.session_state:
+    st.session_state.docVisibility= ""
+
+# original input container function here->
+def chatInterface(qa):
+
+    input_container = st.container()
+    with input_container:
+        
+        user_input = st.chat_input(placeholder="Enter your prompt here")
+        
+    # print("user_input: " + user_input)
+    input_container.float("bottom: 0.5px;")
+    # input_container.markdown("""<style> padding-top: 50px; </style>""", unsafe_allow_html=True)
+
+    # to maintain the chat history
+    chat_history = []
+
+    # Initialize session state for generated2 responses and past2 messages
+    if "past2" not in st.session_state:
+        st.session_state["past2"] = ["Hey there!"]
+        
+    if "generated2" not in st.session_state:
+        print("generated2 not in session state")
+        st.session_state["generated2"] = ["Ask away any questions you have about the Document. "] #Below is a summary of your file to get you started.
+        summary = qa({"query": "Say 'Here is a summary of your document' and then summarise in a short paragraph and give 3-5 salient points", "chat_history": chat_history})
+        # chat_history.append(("", summary['result']))       
+        summary_response = str(summary["result"])
+        st.session_state.past2.append("Let's start with the summary")
+        st.session_state.generated2.append(summary_response)
+    
+    
+
+
+    
+        
+    # Search the database for a response based on user input and update session state
+    if user_input:
+       
+        # output = qa({"question": user_input, "chat_history": chat_history})
+        output = qa({"query": user_input, "chat_history": chat_history})
+        # update chat history by adding this query and answer
+        chat_history.append((user_input, output['result']))        
+        
+        #adding the current query and response to appropriate lists
+        st.session_state.past2.append(user_input)
+
+        # Display messages with loader
+        
+        response = str(output["result"])
+        # response = str(output["answer"])
+        st.session_state.generated2.append(response)
+    
+    
+ 
+        
+
+    # Display conversation history using Streamlit messages
+    if st.session_state["generated2"]:
+        display_conversation(st.session_state)
